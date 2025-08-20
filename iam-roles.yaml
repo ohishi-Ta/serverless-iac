@@ -56,7 +56,86 @@ Resources:
                   - bedrock:ListKnowledgeBases
                 Resource: "*"
 
+  DevSamLambdaGetChatRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SAMDynamoDBPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Ref DynamoDBTableArn
+
+  DevSamLambdaPromptImagesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  DevSamLambdaS3ImagesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: SAMDynamoDBPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Ref DynamoDBTableArn
+
 Outputs:
   DevSamLambdaGenerateRoleArn:
     Description: ARN of the DevSamLambdaGenerateRole
     Value: !GetAtt DevSamLambdaGenerateRole.Arn
+
+  DevSamLambdaGetChatRoleArn:
+    Description: ARN of the DevSamLambdaGetChatRole
+    Value: !GetAtt DevSamLambdaGetChatRole.Arn
+
+  DevSamLambdaPromptImagesRoleArn:
+    Description: ARN of the DevSamLambdaPromptImagesRole
+    Value: !GetAtt DevSamLambdaPromptImagesRole.Arn
+
+  DevSamLambdaS3ImagesRoleArn:
+    Description: ARN of the DevSamLambdaS3ImagesRole
+    Value: !GetAtt DevSamLambdaS3ImagesRole.Arn

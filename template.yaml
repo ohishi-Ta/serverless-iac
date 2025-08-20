@@ -12,7 +12,7 @@ Globals:
 Resources:
 
   # IAMロールスタック（ネストスタック）
-  IamRolesStack:
+  IamStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ./iam-roles.yaml
@@ -41,6 +41,7 @@ Resources:
       CodeUri: functions/rag-prompt-images/
       Handler: index.handler
       Runtime: nodejs22.x
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaPromptImagesRoleArn
       Events:
         PresignedUrl:
           Type: HttpApi
@@ -56,6 +57,7 @@ Resources:
       CodeUri: functions/s3-images/
       Handler: index.handler
       Runtime: nodejs22.x
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaS3ImagesRoleArn
       Events:
         GetImage:
           Type: HttpApi
@@ -87,7 +89,7 @@ Resources:
       CodeUri: functions/rag-generate-image/
       Handler: index.handler
       Runtime: nodejs22.x
-      Role: !GetAtt IamRolesStack.Outputs.DevSamLambdaGenerateRoleArn
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaGenerateRoleArn
 
   DevSamRagGetChatsFunction:
     Type: AWS::Serverless::Function
@@ -96,6 +98,7 @@ Resources:
       CodeUri: functions/rag-get-chats/
       Handler: app.lambda_handler
       Runtime: python3.13
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GetChats:
           Type: HttpApi
@@ -111,6 +114,7 @@ Resources:
       CodeUri: functions/search-chats/
       Handler: index.handler
       Runtime: nodejs22.x
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GETSearch:
           Type: HttpApi
@@ -126,7 +130,7 @@ Resources:
       CodeUri: functions/rag-sse-stream/
       Handler: index.handler
       Runtime: nodejs22.x
-      Role: !GetAtt IamRolesStack.Outputs.DevSamLambdaGenerateRoleArn
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaGenerateRoleArn
 
   DevSamRagGetChatDetailFunction:
     Type: AWS::Serverless::Function
@@ -135,6 +139,7 @@ Resources:
       CodeUri: functions/rag-get-chat-detail/
       Handler: app.lambda_handler
       Runtime: python3.13
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GetChatDetail:
           Type: HttpApi

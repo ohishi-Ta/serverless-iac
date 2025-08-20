@@ -8,17 +8,17 @@ Globals:
     Architectures:
     - x86_64
 Resources:
-  IamRolesStack:
+  IamStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: IamRolesStack\template.yaml
+      TemplateURL: IamStack\template.yaml
       Parameters:
         DynamoDBTableArn:
           Fn::GetAtt:
           - DevSamRagAppTable
           - Arn
     Metadata:
-      SamResourceId: IamRolesStack
+      SamResourceId: IamStack
   DevSamRagAppHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -38,6 +38,10 @@ Resources:
       CodeUri: DevSamRagPromptImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaPromptImagesRoleArn
       Events:
         PresignedUrl:
           Type: HttpApi
@@ -55,6 +59,10 @@ Resources:
       CodeUri: DevSamS3ImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaS3ImagesRoleArn
       Events:
         GetImage:
           Type: HttpApi
@@ -92,7 +100,7 @@ Resources:
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
-        - IamRolesStack
+        - IamStack
         - Outputs.DevSamLambdaGenerateRoleArn
     Metadata:
       SamResourceId: DevSamRagGenerateImageFunction
@@ -103,6 +111,10 @@ Resources:
       CodeUri: DevSamRagGetChatsFunction
       Handler: app.lambda_handler
       Runtime: python3.13
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GetChats:
           Type: HttpApi
@@ -120,6 +132,10 @@ Resources:
       CodeUri: DevSamSearchChatsFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GETSearch:
           Type: HttpApi
@@ -139,7 +155,7 @@ Resources:
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
-        - IamRolesStack
+        - IamStack
         - Outputs.DevSamLambdaGenerateRoleArn
     Metadata:
       SamResourceId: DevSamRagSseStreamFunction
@@ -150,6 +166,10 @@ Resources:
       CodeUri: DevSamRagGetChatDetailFunction
       Handler: app.lambda_handler
       Runtime: python3.13
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaGetChatRoleArn
       Events:
         GetChatDetail:
           Type: HttpApi
