@@ -3,7 +3,8 @@ Description: IAM Roles for dev-sam stack
 Parameters:
   DynamoDBTableArn:
     Type: String
-    Description: ARN of DynamoDB table for Lambda access
+  CognitoUserPoolArn:
+    Type: String
 Resources:
   DevSamLambdaGenerateRole:
     Type: AWS::IAM::Role
@@ -117,6 +118,36 @@ Resources:
             - dynamodb:UpdateItem
             Resource:
             - Ref: DynamoDBTableArn
+  DevSamLambdaCognitoSESRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: SAMCognitoPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            Resource:
+            - Fn::Sub: arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*
+          - Effect: Allow
+            Action:
+            - cognito-idp:AdminDisableUser
+            - cognito-idp:AdminGetUser
+            - cognito-idp:ListUsers
+            Resource:
+            - Ref: CognitoUserPoolArn
 Outputs:
   DevSamLambdaGenerateRoleArn:
     Description: ARN of the DevSamLambdaGenerateRole
@@ -141,4 +172,10 @@ Outputs:
     Value:
       Fn::GetAtt:
       - DevSamLambdaS3ImagesRole
+      - Arn
+  DevSamLambdaCognitoSESRoleArn:
+    Description: ARN of the DevSamLambdaCognitoSESRole
+    Value:
+      Fn::GetAtt:
+      - DevSamLambdaCognitoSESRole
       - Arn

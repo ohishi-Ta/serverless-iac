@@ -18,6 +18,7 @@ Resources:
       TemplateURL: ./iam-roles.yaml
       Parameters:
         DynamoDBTableArn: !GetAtt DevSamRagAppTable.Arn
+        CognitoUserPoolArn: !GetAtt DevSamRagAppUserPool.Arn
 
   # API Gateway HTTP API
   DevSamRagAppHttpApi:
@@ -32,6 +33,16 @@ Resources:
           - POST
           - OPTIONS
           - DELETE
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${DevSamRagAppUserPool}
+              audience:
+                - !Ref DevSamRagAppUserPoolClient
+            IdentitySource: "$request.header.Authorization"
+        DefaultAuthorizer: CognitoAuthorizer
+
 
   # Lambda
   DevSamRagPromptImagesFunction:
@@ -73,6 +84,7 @@ Resources:
       CodeUri: functions/cognito-post-confirmation/
       Handler: index.handler
       Runtime: nodejs22.x
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaCognitoSESRoleArn
 
   DevSamCognitoUserEnableFunction:
     Type: AWS::Serverless::Function
@@ -81,6 +93,7 @@ Resources:
       CodeUri: functions/cognito-user-enable/
       Handler: index.handler
       Runtime: nodejs22.x
+      Role: !GetAtt IamStack.Outputs.DevSamLambdaCognitoSESRoleArn
 
   DevSamRagGenerateImageFunction:
     Type: AWS::Serverless::Function

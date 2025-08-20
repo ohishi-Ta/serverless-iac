@@ -17,6 +17,10 @@ Resources:
           Fn::GetAtt:
           - DevSamRagAppTable
           - Arn
+        CognitoUserPoolArn:
+          Fn::GetAtt:
+          - DevSamRagAppUserPool
+          - Arn
     Metadata:
       SamResourceId: IamStack
   DevSamRagAppHttpApi:
@@ -31,6 +35,16 @@ Resources:
         - POST
         - OPTIONS
         - DELETE
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            JwtConfiguration:
+              issuer:
+                Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${DevSamRagAppUserPool}
+              audience:
+              - Ref: DevSamRagAppUserPoolClient
+            IdentitySource: $request.header.Authorization
+        DefaultAuthorizer: CognitoAuthorizer
   DevSamRagPromptImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -80,6 +94,10 @@ Resources:
       CodeUri: DevSamCognitoPostConfirmationFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaCognitoSESRoleArn
     Metadata:
       SamResourceId: DevSamCognitoPostConfirmationFunction
   DevSamCognitoUserEnableFunction:
@@ -89,6 +107,10 @@ Resources:
       CodeUri: DevSamCognitoUserEnableFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Role:
+        Fn::GetAtt:
+        - IamStack
+        - Outputs.DevSamLambdaCognitoSESRoleArn
     Metadata:
       SamResourceId: DevSamCognitoUserEnableFunction
   DevSamRagGenerateImageFunction:
