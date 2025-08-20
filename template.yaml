@@ -53,6 +53,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Role: !GetAtt IamStack.Outputs.DevSamLambdaPromptImagesRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: dev-rag-prompt-images
       Events:
         PresignedUrl:
           Type: HttpApi
@@ -69,6 +72,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Role: !GetAtt IamStack.Outputs.DevSamLambdaS3ImagesRoleArn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: dev-rag-prompt-images
       Events:
         GetImage:
           Type: HttpApi
@@ -103,6 +109,22 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Role: !GetAtt IamStack.Outputs.DevSamLambdaGenerateRoleArn
+      Environment:
+        Variables:
+          BEDROCK_AWS_REGION: us-west-2
+          DYNAMODB_TABLE_NAME: !Ref DevSamRagAppTable
+          S3_BUCKET_NAME: dev-rag-prompt-images
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+        Cors:
+          AllowOrigins:
+            - '*'
+          AllowHeaders:
+            - '*'
+          AllowMethods:
+            - '*'
+          AllowCredentials: false
 
   DevSamRagGetChatsFunction:
     Type: AWS::Serverless::Function
@@ -112,6 +134,9 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.13
       Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref DevSamRagAppTable
       Events:
         GetChats:
           Type: HttpApi
@@ -128,6 +153,9 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref DevSamRagAppTable
       Events:
         GETSearch:
           Type: HttpApi
@@ -144,6 +172,23 @@ Resources:
       Handler: index.handler
       Runtime: nodejs22.x
       Role: !GetAtt IamStack.Outputs.DevSamLambdaGenerateRoleArn
+      Environment:
+        Variables:
+          BEDROCK_AWS_REGION: us-west-2
+          DYNAMODB_TABLE_NAME: !Ref DevSamRagAppTable
+          KNOWLEDGE_BASE_ID: MYT87G8AIP
+          S3_BUCKET_NAME: dev-rag-prompt-images
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
+        Cors:
+          AllowOrigins:
+            - '*'
+          AllowHeaders:
+            - '*'
+          AllowMethods:
+            - '*'
+          AllowCredentials: false
 
   DevSamRagGetChatDetailFunction:
     Type: AWS::Serverless::Function
@@ -153,6 +198,9 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.13
       Role: !GetAtt IamStack.Outputs.DevSamLambdaGetChatRoleArn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref DevSamRagAppTable
       Events:
         GetChatDetail:
           Type: HttpApi
