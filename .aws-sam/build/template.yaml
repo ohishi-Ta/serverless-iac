@@ -148,3 +148,14 @@ Resources:
             Method: DELETE
     Metadata:
       SamResourceId: DevSamRagGetChatDetailFunction
+  DevSamRagAppTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: dev-sam-rag-app-table
+      AttributeDefinitions:
+      - AttributeName: userId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: userId
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
