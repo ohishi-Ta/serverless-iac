@@ -167,3 +167,30 @@ Resources:
         - AttributeName: userId
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+
+  # Cognito User Pool
+  DevSamRagAppUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: dev-sam-rag-app-user-pool
+      AutoVerifiedAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+
+  # Cognito User Pool Client
+  DevSamRagAppUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: dev-sam-rag-app-client
+      UserPoolId: !Ref DevSamRagAppUserPool
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 14
+      PreventUserExistenceErrors: ENABLED 
+      TokenValidityUnits:
+        AccessToken: days
+        IdToken: days
+        RefreshToken: days
