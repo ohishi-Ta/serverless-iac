@@ -11,6 +11,20 @@ Globals:
 
 Resources:
 
+  # API Gateway HTTP API
+  DevSamRagAppHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: dev-sam-rag-app-http-api
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+          - DELETE
+
   DevSamRagPromptImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -18,6 +32,13 @@ Resources:
       CodeUri: functions/rag-prompt-images/
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        PresignedUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /presigned-url
+            Method: POST
 
   DevSamS3ImagesFunction:
     Type: AWS::Serverless::Function
@@ -26,6 +47,13 @@ Resources:
       CodeUri: functions/s3-images/
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        GetImage:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /get-image
+            Method: POST
 
   DevSamCognitoPostConfirmationFunction:
     Type: AWS::Serverless::Function
@@ -58,6 +86,13 @@ Resources:
       CodeUri: functions/rag-get-chats/
       Handler: app.lambda_handler
       Runtime: python3.13
+      Events:
+        GetChats:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /chats
+            Method: GET
 
   DevSamSearchChatsFunction:
     Type: AWS::Serverless::Function
@@ -66,6 +101,13 @@ Resources:
       CodeUri: functions/search-chats/
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        GETSearch:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /search
+            Method: GET
 
   DevSamRagSseStreamFunction:
     Type: AWS::Serverless::Function
@@ -82,3 +124,17 @@ Resources:
       CodeUri: functions/rag-get-chat-detail/
       Handler: app.lambda_handler
       Runtime: python3.13
+      Events:
+        GetChatDetail:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /chats/{chatId}
+            Method: GET
+
+        DeleteChatDetail:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref DevSamRagAppHttpApi
+            Path: /chats/{chatId}
+            Method: DELETE

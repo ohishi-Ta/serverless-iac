@@ -8,6 +8,18 @@ Globals:
     Architectures:
     - x86_64
 Resources:
+  DevSamRagAppHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: dev-sam-rag-app-http-api
+      CorsConfiguration:
+        AllowOrigins:
+        - '*'
+        AllowMethods:
+        - GET
+        - POST
+        - OPTIONS
+        - DELETE
   DevSamRagPromptImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -15,6 +27,14 @@ Resources:
       CodeUri: DevSamRagPromptImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        PresignedUrl:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /presigned-url
+            Method: POST
     Metadata:
       SamResourceId: DevSamRagPromptImagesFunction
   DevSamS3ImagesFunction:
@@ -24,6 +44,14 @@ Resources:
       CodeUri: DevSamS3ImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        GetImage:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /get-image
+            Method: POST
     Metadata:
       SamResourceId: DevSamS3ImagesFunction
   DevSamCognitoPostConfirmationFunction:
@@ -60,6 +88,14 @@ Resources:
       CodeUri: DevSamRagGetChatsFunction
       Handler: app.lambda_handler
       Runtime: python3.13
+      Events:
+        GetChats:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /chats
+            Method: GET
     Metadata:
       SamResourceId: DevSamRagGetChatsFunction
   DevSamSearchChatsFunction:
@@ -69,6 +105,14 @@ Resources:
       CodeUri: DevSamSearchChatsFunction
       Handler: index.handler
       Runtime: nodejs22.x
+      Events:
+        GETSearch:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /search
+            Method: GET
     Metadata:
       SamResourceId: DevSamSearchChatsFunction
   DevSamRagSseStreamFunction:
@@ -87,5 +131,20 @@ Resources:
       CodeUri: DevSamRagGetChatDetailFunction
       Handler: app.lambda_handler
       Runtime: python3.13
+      Events:
+        GetChatDetail:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /chats/{chatId}
+            Method: GET
+        DeleteChatDetail:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: DevSamRagAppHttpApi
+            Path: /chats/{chatId}
+            Method: DELETE
     Metadata:
       SamResourceId: DevSamRagGetChatDetailFunction
