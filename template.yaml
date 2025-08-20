@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: dev-sam stack
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 128
+    Architectures:
+      - x86_64
+
+Resources:
+
+  DevSamRagPromptImagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-rag-prompt-images-function
+      CodeUri: functions/rag-prompt-images/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamS3ImagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-s3-images-function
+      CodeUri: functions/s3-images/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamCognitoPostConfirmationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-cognito-post-confirmation-function
+      CodeUri: functions/cognito-post-confirmation/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamCognitoUserEnableFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-cognito-user-enable-function
+      CodeUri: functions/cognito-user-enable/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamRagGenerateImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-rag-generate-image-function
+      CodeUri: functions/rag-generate-image/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamRagGetChatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-rag-get-chats-function
+      CodeUri: functions/rag-get-chats/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+
+  DevSamSearchChatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-search-chats-function
+      CodeUri: functions/search-chats/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamRagSseStreamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-rag-sse-stream-function
+      CodeUri: functions/rag-sse-stream/
+      Handler: index.handler
+      Runtime: nodejs22.x
+
+  DevSamRagGetChatDetailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dev-sam-rag-get-chat-detail-function
+      CodeUri: functions/rag-get-chat-detail/
+      Handler: app.lambda_handler
+      Runtime: python3.13
