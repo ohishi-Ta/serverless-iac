@@ -8,67 +8,17 @@ Globals:
     Architectures:
     - x86_64
 Resources:
-  DevSamLambdaGenerateRole:
-    Type: AWS::IAM::Role
+  IamRolesStack:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service: lambda.amazonaws.com
-          Action: sts:AssumeRole
-      ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      - arn:aws:iam::aws:policy/AmazonS3FullAccess
-      Policies:
-      - PolicyName: SAMDynamoDBPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Sid: AllowDynamoDBAccess
-            Effect: Allow
-            Action:
-            - dynamodb:PutItem
-            - dynamodb:GetItem
-            - dynamodb:DeleteItem
-            - dynamodb:UpdateItem
-            Resource:
-            - Fn::GetAtt:
-              - DevSamRagAppTable
-              - Arn
-      - PolicyName: SAMBedrockPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - bedrock:InvokeModelWithResponseStream
-            - bedrock:GetInferenceProfile
-            - bedrock:InvokeModel
-            Resource:
-            - arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-lite-v1:0
-            - arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-pro-v1:0
-            - arn:aws:bedrock:us-east-2:794038219704:inference-profile/us.anthropic.claude-3-5-sonnet-20241022-v2:0
-            - arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0
-            - arn:aws:bedrock:us-east-2:794038219704:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0
-            - arn:aws:bedrock:*::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0
-            - arn:aws:bedrock:us-east-2:794038219704:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0
-            - arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0
-            - arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-canvas-v1:0
-          - Effect: Allow
-            Action:
-            - bedrock:Retrieve
-            - bedrock:RetrieveAndGenerate
-            Resource:
-            - arn:aws:bedrock:us-east-2:794038219704:knowledge-base/*
-            - arn:aws:bedrock:us-east-2:794038219704:knowledge-base/*/*
-          - Sid: BedrockKnowledgeBaseManagement
-            Effect: Allow
-            Action:
-            - bedrock:GetKnowledgeBase
-            - bedrock:ListKnowledgeBases
-            Resource: '*'
+      TemplateURL: IamRolesStack\template.yaml
+      Parameters:
+        DynamoDBTableArn:
+          Fn::GetAtt:
+          - DevSamRagAppTable
+          - Arn
+    Metadata:
+      SamResourceId: IamRolesStack
   DevSamRagAppHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -142,8 +92,8 @@ Resources:
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
-        - DevSamLambdaGenerateRole
-        - Arn
+        - IamRolesStack
+        - Outputs.DevSamLambdaGenerateRoleArn
     Metadata:
       SamResourceId: DevSamRagGenerateImageFunction
   DevSamRagGetChatsFunction:
@@ -189,8 +139,8 @@ Resources:
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
-        - DevSamLambdaGenerateRole
-        - Arn
+        - IamRolesStack
+        - Outputs.DevSamLambdaGenerateRoleArn
     Metadata:
       SamResourceId: DevSamRagSseStreamFunction
   DevSamRagGetChatDetailFunction:
