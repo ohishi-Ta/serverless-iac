@@ -58,7 +58,8 @@ Resources:
         - Outputs.DevSamLambdaPromptImagesRoleArn
       Environment:
         Variables:
-          S3_BUCKET_NAME: dev-rag-prompt-images
+          S3_BUCKET_NAME:
+            Ref: DevSamRagPromptImagesBucket
       Events:
         PresignedUrl:
           Type: HttpApi
@@ -82,7 +83,8 @@ Resources:
         - Outputs.DevSamLambdaS3ImagesRoleArn
       Environment:
         Variables:
-          S3_BUCKET_NAME: dev-rag-prompt-images
+          S3_BUCKET_NAME:
+            Ref: DevSamRagPromptImagesBucket
       Events:
         GetImage:
           Type: HttpApi
@@ -135,7 +137,8 @@ Resources:
           BEDROCK_AWS_REGION: us-west-2
           DYNAMODB_TABLE_NAME:
             Ref: DevSamRagAppTable
-          S3_BUCKET_NAME: dev-rag-prompt-images
+          S3_BUCKET_NAME:
+            Ref: DevSamRagPromptImagesBucket
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: BUFFERED
@@ -216,7 +219,8 @@ Resources:
           DYNAMODB_TABLE_NAME:
             Ref: DevSamRagAppTable
           KNOWLEDGE_BASE_ID: MYT87G8AIP
-          S3_BUCKET_NAME: dev-rag-prompt-images
+          S3_BUCKET_NAME:
+            Ref: DevSamRagPromptImagesBucket
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
@@ -262,6 +266,18 @@ Resources:
             Method: DELETE
     Metadata:
       SamResourceId: DevSamRagGetChatDetailFunction
+  DevSamRagPromptImagesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: dev-sam-rag-prompt-images
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
   DevSamRagAppTable:
     Type: AWS::DynamoDB::Table
     Properties:
