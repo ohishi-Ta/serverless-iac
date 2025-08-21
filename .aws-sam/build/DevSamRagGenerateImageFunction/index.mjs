@@ -3,12 +3,12 @@ import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // AWSクライアントの初期化
-const bedrockRuntime = new BedrockRuntimeClient({ region: process.env.BEDROCK_AWS_REGION });
+const bedrockRuntime = new BedrockRuntimeClient({ region: process.env.BEDROCK_GENIMAGE_AWS_REGION });
 const s3Client = new S3Client({ region: process.env.AWS_REGION });
 
 // 環境変数
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-const BEDROCK_AWS_REGION = process.env.BEDROCK_AWS_REGION;
+const BEDROCK_GENIMAGE_AWS_REGION = process.env.BEDROCK_GENIMAGE_AWS_REGION;
 
 // JWTトークンからユーザーIDを抽出
 function extractUserIdFromToken(token) {

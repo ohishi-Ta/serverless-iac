@@ -16,8 +16,8 @@ const BEDROCK_AWS_REGION = process.env.BEDROCK_AWS_REGION;
 
 // モデルマッピング
 const MODEL_MAPPING = {
-    'nova-lite': 'amazon.nova-lite-v1:0',
-    'nova-pro': 'amazon.nova-pro-v1:0',
+    'nova-lite': 'us.amazon.nova-lite-v1:0',
+    'nova-pro': 'us.amazon.nova-pro-v1:0',
     'claude-3-7-sonnet': 'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
     'claude-sonnet-4': 'us.anthropic.claude-sonnet-4-20250514-v1:0'
 };

@@ -7,6 +7,21 @@ Globals:
     MemorySize: 128
     Architectures:
     - x86_64
+Parameters:
+  DomainName:
+    Type: String
+    Default: dev.ai.cpinfo.jp
+    Description: Domain name for CloudFront distribution
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN for the domain (must be in us-east-1)
+    Default: arn:aws:acm:us-east-1:794038219704:certificate/7d2d02e3-c835-491a-b616-50b55f738943
+Conditions:
+  HasCertificate:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: CertificateArn
+      - ''
 Resources:
   IamStack:
     Type: AWS::CloudFormation::Stack
@@ -134,7 +149,7 @@ Resources:
         - Outputs.DevSamLambdaGenerateRoleArn
       Environment:
         Variables:
-          BEDROCK_AWS_REGION: us-west-2
+          BEDROCK_GENIMAGE_AWS_REGION: us-east-1
           DYNAMODB_TABLE_NAME:
             Ref: DevSamRagAppTable
           S3_BUCKET_NAME:
@@ -278,6 +293,114 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - BucketKeyEnabled: true
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          - POST
+          - DELETE
+          - HEAD
+          AllowedOrigins:
+          - '*'
+          ExposedHeaders:
+          - ETag
+          MaxAge: 3000
+  DevSamRagFrontBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: dev-sam-rag-front
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
+  DevSamRagFrontOAI:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name:
+          Fn::Sub: ${AWS::StackName}-OAC
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  DevSamRagFrontBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: DevSamRagFrontBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: AllowCloudFrontServicePrincipal
+          Effect: Allow
+          Principal:
+            Service: cloudfront.amazonaws.com
+          Action: s3:GetObject
+          Resource:
+            Fn::Sub: ${DevSamRagFrontBucket.Arn}/*
+          Condition:
+            StringEquals:
+              AWS:SourceArn:
+                Fn::Sub: arn:aws:cloudfront::${AWS::AccountId}:distribution/${DevSamRagDistribution}
+  DevSamRagDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment:
+          Fn::Sub: ${AWS::StackName} distribution
+        Aliases:
+          Fn::If:
+          - HasCertificate
+          - - Ref: DomainName
+          - Ref: AWS::NoValue
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          Fn::If:
+          - HasCertificate
+          - AcmCertificateArn:
+              Ref: CertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+        Origins:
+        - Id: S3Origin
+          DomainName:
+            Fn::GetAtt:
+            - DevSamRagFrontBucket
+            - RegionalDomainName
+          S3OriginConfig: {}
+          OriginAccessControlId:
+            Ref: DevSamRagFrontOAI
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          CachedMethods:
+          - GET
+          - HEAD
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          ResponseHeadersPolicyId: 5cc3b908-e619-4b99-88e5-2cf7f45965bd
+        CustomErrorResponses:
+        - ErrorCode: 403
+          ResponseCode: 200
+          ResponsePagePath: /index.html
+        - ErrorCode: 404
+          ResponseCode: 200
+          ResponsePagePath: /index.html
   DevSamRagAppTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -313,3 +436,43 @@ Resources:
         AccessToken: days
         IdToken: days
         RefreshToken: days
+Outputs:
+  CognitoUserPoolId:
+    Description: Cognito User Pool ID
+    Value:
+      Ref: DevSamRagAppUserPool
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-CognitoUserPoolId
+  CognitoUserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value:
+      Ref: DevSamRagAppUserPoolClient
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-CognitoUserPoolClientId
+  ApiGatewayHttpApiUrl:
+    Description: API Gateway HTTP API URL
+    Value:
+      Fn::Sub: https://${DevSamRagAppHttpApi}.execute-api.${AWS::Region}.amazonaws.com
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ApiGatewayHttpApiUrl
+  RagGenerateImageFunctionUrl:
+    Description: RAG Generate Image Function URL
+    Value:
+      Fn::GetAtt:
+      - DevSamRagGenerateImageFunctionUrl
+      - FunctionUrl
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-RagGenerateImageFunctionUrl
+  RagSseStreamFunctionUrl:
+    Description: RAG SSE Stream Function URL
+    Value:
+      Fn::GetAtt:
+      - DevSamRagSseStreamFunctionUrl
+      - FunctionUrl
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-RagSseStreamFunctionUrl

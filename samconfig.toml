@@ -8,3 +8,7 @@ confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 disable_rollback = true
 image_repositories = []
+parameter_overrides = [
+    "DomainName=dev.ai.cpinfo.jp",
+    "CertificateArn=arn:aws:acm:us-east-1:794038219704:certificate/7d2d02e3-c835-491a-b616-50b55f738943"
+]

@@ -44,13 +44,23 @@ Resources:
                   - bedrock:GetInferenceProfile
                   - bedrock:InvokeModel
                 Resource:
-                  - "*"
+                  - "arn:aws:bedrock:us-west-2:794038219704:inference-profile/us.amazon.nova-lite-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/amazon.nova-lite-v1:0"
+                  - "arn:aws:bedrock:us-west-2:794038219704:inference-profile/us.amazon.nova-pro-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0"
+                  - "arn:aws:bedrock:us-west-2:794038219704:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0"
+                  - "arn:aws:bedrock:us-west-2:794038219704:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0"
+                  - "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-canvas-v1:0"
+
               - Effect: Allow
                 Action:
                   - bedrock:Retrieve
                   - bedrock:RetrieveAndGenerate
                 Resource:
-                  - "*"
+                  - "arn:aws:bedrock:us-west-2:794038219704:knowledge-base/*"
+                  - "arn:aws:bedrock:us-west-2:794038219704:knowledge-base/*/*"
               - Effect: Allow
                 Action:
                   - bedrock:GetKnowledgeBase
