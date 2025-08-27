@@ -1,14 +1,46 @@
 version = 0.1
-[default.deploy.parameters]
-stack_name = "dev-sam-stack"
+
+[dev.deploy.parameters]
+stack_name = "dev-sam-ragchat-stack"
 resolve_s3 = true
-s3_prefix = "dev-sam-stack"
+s3_prefix = "dev-sam-ragchat-stack"
 region = "ap-northeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 disable_rollback = true
 image_repositories = []
 parameter_overrides = [
+    "Environment=dev",
     "DomainName=dev.ai.cpinfo.jp",
     "CertificateArn=arn:aws:acm:us-east-1:794038219704:certificate/7d2d02e3-c835-491a-b616-50b55f738943"
+]
+
+[stg.deploy.parameters]
+stack_name = "stg-sam-ragchat-stack"
+resolve_s3 = true
+s3_prefix = "stg-sam-ragchat-stack"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+disable_rollback = true
+image_repositories = []
+parameter_overrides = [
+    "Environment=stg",
+    "DomainName=stg.ai.cpinfo.jp",
+    "CertificateArn=arn:aws:acm:us-east-1:794038219704:certificate/YOUR-STG-CERT-ARN"
+]
+
+[prod.deploy.parameters]
+stack_name = "prod-sam-ragchat-stack"
+resolve_s3 = true
+s3_prefix = "prod-sam-ragchat-stack"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+disable_rollback = false
+image_repositories = []
+parameter_overrides = [
+    "Environment=prod",
+    "DomainName=ai.cpinfo.jp",
+    "CertificateArn=arn:aws:acm:us-east-1:794038219704:certificate/YOUR-PROD-CERT-ARN"
 ]

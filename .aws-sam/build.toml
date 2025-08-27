@@ -7,7 +7,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamRagPromptImagesFunction"]
+functions = ["RagChatPromptImagesFunction"]
 
 [function_build_definitions.1ed0cc02-5508-47cb-97b7-58439a0002ac]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\s3-images"
@@ -16,7 +16,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamS3ImagesFunction"]
+functions = ["RagChatS3ImagesFunction"]
 
 [function_build_definitions.7dfceb14-9f00-4bda-9f9f-6d1bf41e2488]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\cognito-post-confirmation"
@@ -25,7 +25,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamCognitoPostConfirmationFunction"]
+functions = ["RagChatCognitoPostConfirmationFunction"]
 
 [function_build_definitions.962304d5-c271-4a91-a871-e5b0cf01b173]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\cognito-user-enable"
@@ -34,7 +34,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamCognitoUserEnableFunction"]
+functions = ["RagChatCognitoUserEnableFunction"]
 
 [function_build_definitions.2c785c44-6628-4523-a101-cf269e35eb90]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\rag-generate-image"
@@ -43,7 +43,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamRagGenerateImageFunction"]
+functions = ["RagChatGenerateImageFunction"]
 
 [function_build_definitions.06f2a114-57d3-434f-977c-9ba175a71f6b]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\rag-get-chats"
@@ -52,7 +52,7 @@ architecture = "x86_64"
 handler = "app.lambda_handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamRagGetChatsFunction"]
+functions = ["RagChatGetChatsFunction"]
 
 [function_build_definitions.466d0b59-bf71-423f-b1fb-78da1b70ce9a]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\search-chats"
@@ -61,7 +61,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamSearchChatsFunction"]
+functions = ["RagChatSearchChatsFunction"]
 
 [function_build_definitions.288ae4ae-bd48-4c38-b116-fc51e917f8ad]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\rag-sse-stream"
@@ -70,7 +70,7 @@ architecture = "x86_64"
 handler = "index.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamRagSseStreamFunction"]
+functions = ["RagChatSseStreamFunction"]
 
 [function_build_definitions.85d8c0a6-469a-4330-88ee-73dbb8645a42]
 codeuri = "C:\\Users\\user\\Desktop\\project\\cpibedrock\\front\\IaC\\serverless-iac\\functions\\rag-get-chat-detail"
@@ -79,6 +79,6 @@ architecture = "x86_64"
 handler = "app.lambda_handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DevSamRagGetChatDetailFunction"]
+functions = ["RagChatGetChatDetailFunction"]
 
 [layer_build_definitions]

@@ -1,13 +1,26 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: dev-sam stack
+Description: ragchat stack
 Globals:
   Function:
     Timeout: 60
     MemorySize: 128
     Architectures:
     - x86_64
+    Tags:
+      Project: ragchat-app
+      ManagedBy: sam
+      Environment:
+        Ref: Environment
 Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+    - dev
+    - stg
+    - prod
+    Description: Environment name (dev/stg/prod)
   DomainName:
     Type: String
     Default: dev.ai.cpinfo.jp
@@ -28,20 +41,23 @@ Resources:
     Properties:
       TemplateURL: IamStack\template.yaml
       Parameters:
+        Environment:
+          Ref: Environment
         DynamoDBTableArn:
           Fn::GetAtt:
-          - DevSamRagAppTable
+          - RagChatTable
           - Arn
         CognitoUserPoolArn:
           Fn::GetAtt:
-          - DevSamRagAppUserPool
+          - RagChatUserPool
           - Arn
     Metadata:
       SamResourceId: IamStack
-  DevSamRagAppHttpApi:
+  RagChatHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      Name: dev-sam-rag-app-http-api
+      Name:
+        Fn::Sub: ${Environment}-ragchat-http-api
       CorsConfiguration:
         AllowOrigins:
         - '*'
@@ -55,105 +71,110 @@ Resources:
           CognitoAuthorizer:
             JwtConfiguration:
               issuer:
-                Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${DevSamRagAppUserPool}
+                Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${RagChatUserPool}
               audience:
-              - Ref: DevSamRagAppUserPoolClient
+              - Ref: RagChatUserPoolClient
             IdentitySource: $request.header.Authorization
         DefaultAuthorizer: CognitoAuthorizer
-  DevSamRagPromptImagesFunction:
+  RagChatPromptImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-rag-prompt-images-function
-      CodeUri: DevSamRagPromptImagesFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-prompt-images-function
+      CodeUri: RagChatPromptImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaPromptImagesRoleArn
+        - Outputs.RagChatLambdaPromptImagesRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME:
-            Ref: DevSamRagPromptImagesBucket
+            Ref: RagChatPromptImagesBucket
       Events:
         PresignedUrl:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /presigned-url
             Method: POST
     Metadata:
-      SamResourceId: DevSamRagPromptImagesFunction
-  DevSamS3ImagesFunction:
+      SamResourceId: RagChatPromptImagesFunction
+  RagChatS3ImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-s3-images-function
-      CodeUri: DevSamS3ImagesFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-s3-images-function
+      CodeUri: RagChatS3ImagesFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaS3ImagesRoleArn
+        - Outputs.RagChatLambdaS3ImagesRoleArn
       Environment:
         Variables:
           S3_BUCKET_NAME:
-            Ref: DevSamRagPromptImagesBucket
+            Ref: RagChatPromptImagesBucket
       Events:
         GetImage:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /get-image
             Method: POST
     Metadata:
-      SamResourceId: DevSamS3ImagesFunction
-  DevSamCognitoPostConfirmationFunction:
+      SamResourceId: RagChatS3ImagesFunction
+  RagChatCognitoPostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-cognito-post-confirmation-function
-      CodeUri: DevSamCognitoPostConfirmationFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-cognito-post-confirmation-function
+      CodeUri: RagChatCognitoPostConfirmationFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaCognitoSESRoleArn
+        - Outputs.RagChatLambdaCognitoSESRoleArn
     Metadata:
-      SamResourceId: DevSamCognitoPostConfirmationFunction
-  DevSamCognitoUserEnableFunction:
+      SamResourceId: RagChatCognitoPostConfirmationFunction
+  RagChatCognitoUserEnableFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-cognito-user-enable-function
-      CodeUri: DevSamCognitoUserEnableFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-cognito-user-enable-function
+      CodeUri: RagChatCognitoUserEnableFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaCognitoSESRoleArn
+        - Outputs.RagChatLambdaCognitoSESRoleArn
     Metadata:
-      SamResourceId: DevSamCognitoUserEnableFunction
-  DevSamRagGenerateImageFunction:
+      SamResourceId: RagChatCognitoUserEnableFunction
+  RagChatGenerateImageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-rag-generate-image-function
-      CodeUri: DevSamRagGenerateImageFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-generate-image-function
+      CodeUri: RagChatGenerateImageFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaGenerateRoleArn
+        - Outputs.RagChatLambdaGenerateRoleArn
       Environment:
         Variables:
           BEDROCK_GENIMAGE_AWS_REGION: us-east-1
           DYNAMODB_TABLE_NAME:
-            Ref: DevSamRagAppTable
+            Ref: RagChatTable
           S3_BUCKET_NAME:
-            Ref: DevSamRagPromptImagesBucket
+            Ref: RagChatPromptImagesBucket
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: BUFFERED
@@ -166,76 +187,80 @@ Resources:
           - '*'
           AllowCredentials: false
     Metadata:
-      SamResourceId: DevSamRagGenerateImageFunction
-  DevSamRagGetChatsFunction:
+      SamResourceId: RagChatGenerateImageFunction
+  RagChatGetChatsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-rag-get-chats-function
-      CodeUri: DevSamRagGetChatsFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-get-chats-function
+      CodeUri: RagChatGetChatsFunction
       Handler: app.lambda_handler
       Runtime: python3.13
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaGetChatRoleArn
+        - Outputs.RagChatLambdaGetChatRoleArn
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME:
-            Ref: DevSamRagAppTable
+            Ref: RagChatTable
       Events:
         GetChats:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /chats
             Method: GET
     Metadata:
-      SamResourceId: DevSamRagGetChatsFunction
-  DevSamSearchChatsFunction:
+      SamResourceId: RagChatGetChatsFunction
+  RagChatSearchChatsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-search-chats-function
-      CodeUri: DevSamSearchChatsFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-search-chats-function
+      CodeUri: RagChatSearchChatsFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaGetChatRoleArn
+        - Outputs.RagChatLambdaGetChatRoleArn
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME:
-            Ref: DevSamRagAppTable
+            Ref: RagChatTable
       Events:
         GETSearch:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /search
             Method: GET
     Metadata:
-      SamResourceId: DevSamSearchChatsFunction
-  DevSamRagSseStreamFunction:
+      SamResourceId: RagChatSearchChatsFunction
+  RagChatSseStreamFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-rag-sse-stream-function
-      CodeUri: DevSamRagSseStreamFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-sse-stream-function
+      CodeUri: RagChatSseStreamFunction
       Handler: index.handler
       Runtime: nodejs22.x
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaGenerateRoleArn
+        - Outputs.RagChatLambdaGenerateRoleArn
       Environment:
         Variables:
           BEDROCK_AWS_REGION: us-west-2
           DYNAMODB_TABLE_NAME:
-            Ref: DevSamRagAppTable
+            Ref: RagChatTable
+          KB_AWS_REGION: ap-northeast-1
           KNOWLEDGE_BASE_ID: MYT87G8AIP
           S3_BUCKET_NAME:
-            Ref: DevSamRagPromptImagesBucket
+            Ref: RagChatPromptImagesBucket
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
@@ -248,43 +273,53 @@ Resources:
           - '*'
           AllowCredentials: false
     Metadata:
-      SamResourceId: DevSamRagSseStreamFunction
-  DevSamRagGetChatDetailFunction:
+      SamResourceId: RagChatSseStreamFunction
+  RagChatGetChatDetailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: dev-sam-rag-get-chat-detail-function
-      CodeUri: DevSamRagGetChatDetailFunction
+      FunctionName:
+        Fn::Sub: ${Environment}-ragchat-get-chat-detail-function
+      CodeUri: RagChatGetChatDetailFunction
       Handler: app.lambda_handler
       Runtime: python3.13
       Role:
         Fn::GetAtt:
         - IamStack
-        - Outputs.DevSamLambdaGetChatRoleArn
+        - Outputs.RagChatLambdaGetChatRoleArn
       Environment:
         Variables:
           DYNAMODB_TABLE_NAME:
-            Ref: DevSamRagAppTable
+            Ref: RagChatTable
       Events:
         GetChatDetail:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /chats/{chatId}
             Method: GET
         DeleteChatDetail:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: DevSamRagAppHttpApi
+              Ref: RagChatHttpApi
             Path: /chats/{chatId}
             Method: DELETE
     Metadata:
-      SamResourceId: DevSamRagGetChatDetailFunction
-  DevSamRagPromptImagesBucket:
+      SamResourceId: RagChatGetChatDetailFunction
+  RagChatPromptImagesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: dev-sam-rag-prompt-images
+      BucketName:
+        Fn::Sub: ${Environment}-ragchat-prompt-images-${AWS::AccountId}
+      Tags:
+      - Key: Project
+        Value: ragchat-app
+      - Key: ManagedBy
+        Value: sam
+      - Key: Environment
+        Value:
+          Ref: Environment
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -308,10 +343,19 @@ Resources:
           ExposedHeaders:
           - ETag
           MaxAge: 3000
-  DevSamRagFrontBucket:
+  RagChatFrontBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: dev-sam-rag-front
+      BucketName:
+        Fn::Sub: ${Environment}-ragchat-frontend-${AWS::AccountId}
+      Tags:
+      - Key: Project
+        Value: ragchat-app
+      - Key: ManagedBy
+        Value: sam
+      - Key: Environment
+        Value:
+          Ref: Environment
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -320,20 +364,20 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - BucketKeyEnabled: true
-  DevSamRagFrontOAI:
+  RagChatFrontOAI:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
         Name:
-          Fn::Sub: ${AWS::StackName}-OAC
+          Fn::Sub: ${Environment}-ragchat-oac
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
-  DevSamRagFrontBucketPolicy:
+  RagChatFrontBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket:
-        Ref: DevSamRagFrontBucket
+        Ref: RagChatFrontBucket
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -343,17 +387,17 @@ Resources:
             Service: cloudfront.amazonaws.com
           Action: s3:GetObject
           Resource:
-            Fn::Sub: ${DevSamRagFrontBucket.Arn}/*
+            Fn::Sub: ${RagChatFrontBucket.Arn}/*
           Condition:
             StringEquals:
               AWS:SourceArn:
-                Fn::Sub: arn:aws:cloudfront::${AWS::AccountId}:distribution/${DevSamRagDistribution}
-  DevSamRagDistribution:
+                Fn::Sub: arn:aws:cloudfront::${AWS::AccountId}:distribution/${RagChatDistribution}
+  RagChatDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
         Comment:
-          Fn::Sub: ${AWS::StackName} distribution
+          Fn::Sub: ${Environment}-ragchat distribution
         Aliases:
           Fn::If:
           - HasCertificate
@@ -376,11 +420,11 @@ Resources:
         - Id: S3Origin
           DomainName:
             Fn::GetAtt:
-            - DevSamRagFrontBucket
+            - RagChatFrontBucket
             - RegionalDomainName
           S3OriginConfig: {}
           OriginAccessControlId:
-            Ref: DevSamRagFrontOAI
+            Ref: RagChatFrontOAI
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -401,10 +445,11 @@ Resources:
         - ErrorCode: 404
           ResponseCode: 200
           ResponsePagePath: /index.html
-  DevSamRagAppTable:
+  RagChatTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: dev-sam-rag-app-table
+      TableName:
+        Fn::Sub: ${Environment}-ragchat-table
       AttributeDefinitions:
       - AttributeName: userId
         AttributeType: S
@@ -412,22 +457,44 @@ Resources:
       - AttributeName: userId
         KeyType: HASH
       BillingMode: PAY_PER_REQUEST
-  DevSamRagAppUserPool:
+      Tags:
+      - Key: Project
+        Value: ragchat-app
+      - Key: ManagedBy
+        Value: sam
+      - Key: Environment
+        Value:
+          Ref: Environment
+  RagChatUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: dev-sam-rag-app-user-pool
+      UserPoolName:
+        Fn::Sub: ${Environment}-ragchat-user-pool
+      UserPoolTags:
+        Project: ragchat-app
+        ManagedBy: sam
+        Environment:
+          Ref: Environment
       AutoVerifiedAttributes:
       - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
       Schema:
       - Name: email
         AttributeDataType: String
         Required: true
-  DevSamRagAppUserPoolClient:
+  RagChatUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: dev-sam-rag-app-client
+      ClientName:
+        Fn::Sub: ${Environment}-ragchat-client
       UserPoolId:
-        Ref: DevSamRagAppUserPool
+        Ref: RagChatUserPool
       AccessTokenValidity: 1
       IdTokenValidity: 1
       RefreshTokenValidity: 14
@@ -440,39 +507,39 @@ Outputs:
   CognitoUserPoolId:
     Description: Cognito User Pool ID
     Value:
-      Ref: DevSamRagAppUserPool
+      Ref: RagChatUserPool
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-CognitoUserPoolId
   CognitoUserPoolClientId:
     Description: Cognito User Pool Client ID
     Value:
-      Ref: DevSamRagAppUserPoolClient
+      Ref: RagChatUserPoolClient
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-CognitoUserPoolClientId
   ApiGatewayHttpApiUrl:
     Description: API Gateway HTTP API URL
     Value:
-      Fn::Sub: https://${DevSamRagAppHttpApi}.execute-api.${AWS::Region}.amazonaws.com
+      Fn::Sub: https://${RagChatHttpApi}.execute-api.${AWS::Region}.amazonaws.com
     Export:
       Name:
         Fn::Sub: ${AWS::StackName}-ApiGatewayHttpApiUrl
-  RagGenerateImageFunctionUrl:
+  RagChatGenerateImageFunctionUrl:
     Description: RAG Generate Image Function URL
     Value:
       Fn::GetAtt:
-      - DevSamRagGenerateImageFunctionUrl
+      - RagChatGenerateImageFunctionUrl
       - FunctionUrl
     Export:
       Name:
-        Fn::Sub: ${AWS::StackName}-RagGenerateImageFunctionUrl
-  RagSseStreamFunctionUrl:
+        Fn::Sub: ${AWS::StackName}-RagChatGenerateImageFunctionUrl
+  RagChatSseStreamFunctionUrl:
     Description: RAG SSE Stream Function URL
     Value:
       Fn::GetAtt:
-      - DevSamRagSseStreamFunctionUrl
+      - RagChatSseStreamFunctionUrl
       - FunctionUrl
     Export:
       Name:
-        Fn::Sub: ${AWS::StackName}-RagSseStreamFunctionUrl
+        Fn::Sub: ${AWS::StackName}-RagChatSseStreamFunctionUrl

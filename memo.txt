@@ -1,0 +1,17 @@
+# 環境別デプロイコマンド
+## ビルド
+sam build
+
+## 開発環境へのデプロイ
+sam deploy --config-env dev
+
+## ステージング環境へのデプロイ
+sam deploy --config-env stg
+
+## 本番環境へのデプロイ（確認付き）
+sam deploy --config-env prod
+
+# スタック削除コマンド
+# sam delete --stack-name dev-ragchat-stack
+# sam delete --stack-name stg-ragchat-stack
+# sam delete --stack-name prod-ragchat-stack

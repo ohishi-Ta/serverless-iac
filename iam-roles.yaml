@@ -1,16 +1,25 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: IAM Roles for dev-sam stack
+Description: IAM Roles for ragchat stack
 
 Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+    Description: Environment name (dev/stg/prod)
   DynamoDBTableArn:
     Type: String
   CognitoUserPoolArn:
     Type: String
 
 Resources:
-  DevSamLambdaGenerateRole:
+  RagChatLambdaGenerateRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${Environment}-ragchat-lambda-generate-role"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -22,7 +31,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
-        - PolicyName: SAMDynamoDBPolicy
+        - PolicyName: RagChatDynamoDBPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -34,7 +43,7 @@ Resources:
                   - dynamodb:UpdateItem
                 Resource:
                   - !Ref DynamoDBTableArn
-        - PolicyName: SAMBedrockPolicy
+        - PolicyName: RagChatBedrockPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -53,23 +62,26 @@ Resources:
                   - "arn:aws:bedrock:us-west-2:794038219704:inference-profile/us.anthropic.claude-sonnet-4-20250514-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0"
                   - "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-canvas-v1:0"
+                  - "arn:aws:bedrock:us-west-2::foundation-model/openai.gpt-oss-20b-1:0"
+                  - "arn:aws:bedrock:us-west-2::foundation-model/openai.gpt-oss-120b-1:0"
 
               - Effect: Allow
                 Action:
                   - bedrock:Retrieve
                   - bedrock:RetrieveAndGenerate
                 Resource:
-                  - "arn:aws:bedrock:us-west-2:794038219704:knowledge-base/*"
-                  - "arn:aws:bedrock:us-west-2:794038219704:knowledge-base/*/*"
+                  - "arn:aws:bedrock:ap-northeast-1:794038219704:knowledge-base/*"
+                  - "arn:aws:bedrock:ap-northeast-1:794038219704:knowledge-base/*/*"
               - Effect: Allow
                 Action:
                   - bedrock:GetKnowledgeBase
                   - bedrock:ListKnowledgeBases
                 Resource: "*"
 
-  DevSamLambdaGetChatRole:
+  RagChatLambdaGetChatRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${Environment}-ragchat-lambda-getchat-role"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -80,7 +92,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-        - PolicyName: SAMDynamoDBPolicy
+        - PolicyName: RagChatDynamoDBPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -93,9 +105,10 @@ Resources:
                 Resource:
                   - !Ref DynamoDBTableArn
 
-  DevSamLambdaPromptImagesRole:
+  RagChatLambdaPromptImagesRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${Environment}-ragchat-lambda-promptimages-role"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -107,9 +120,10 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-  DevSamLambdaS3ImagesRole:
+  RagChatLambdaS3ImagesRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${Environment}-ragchat-lambda-s3images-role"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -121,7 +135,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Policies:
-        - PolicyName: SAMDynamoDBPolicy
+        - PolicyName: RagChatDynamoDBPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -134,9 +148,10 @@ Resources:
                 Resource:
                   - !Ref DynamoDBTableArn
 
-  DevSamLambdaCognitoSESRole:
+  RagChatLambdaCognitoSESRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub "${Environment}-ragchat-lambda-cognito-ses-role"
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -147,7 +162,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-        - PolicyName: SAMCognitoPolicy
+        - PolicyName: RagChatCognitoPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -166,22 +181,22 @@ Resources:
                   - !Ref CognitoUserPoolArn
 
 Outputs:
-  DevSamLambdaGenerateRoleArn:
-    Description: ARN of the DevSamLambdaGenerateRole
-    Value: !GetAtt DevSamLambdaGenerateRole.Arn
+  RagChatLambdaGenerateRoleArn:
+    Description: ARN of the RagChatLambdaGenerateRole
+    Value: !GetAtt RagChatLambdaGenerateRole.Arn
 
-  DevSamLambdaGetChatRoleArn:
-    Description: ARN of the DevSamLambdaGetChatRole
-    Value: !GetAtt DevSamLambdaGetChatRole.Arn
+  RagChatLambdaGetChatRoleArn:
+    Description: ARN of the RagChatLambdaGetChatRole
+    Value: !GetAtt RagChatLambdaGetChatRole.Arn
 
-  DevSamLambdaPromptImagesRoleArn:
-    Description: ARN of the DevSamLambdaPromptImagesRole
-    Value: !GetAtt DevSamLambdaPromptImagesRole.Arn
+  RagChatLambdaPromptImagesRoleArn:
+    Description: ARN of the RagChatLambdaPromptImagesRole
+    Value: !GetAtt RagChatLambdaPromptImagesRole.Arn
 
-  DevSamLambdaS3ImagesRoleArn:
-    Description: ARN of the DevSamLambdaS3ImagesRole
-    Value: !GetAtt DevSamLambdaS3ImagesRole.Arn
+  RagChatLambdaS3ImagesRoleArn:
+    Description: ARN of the RagChatLambdaS3ImagesRole
+    Value: !GetAtt RagChatLambdaS3ImagesRole.Arn
 
-  DevSamLambdaCognitoSESRoleArn:
-    Description: ARN of the DevSamLambdaCognitoSESRole
-    Value: !GetAtt DevSamLambdaCognitoSESRole.Arn
+  RagChatLambdaCognitoSESRoleArn:
+    Description: ARN of the RagChatLambdaCognitoSESRole
+    Value: !GetAtt RagChatLambdaCognitoSESRole.Arn
